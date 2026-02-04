@@ -302,7 +302,7 @@ export default function DashboardPage() {
   const planLabel = useMemo(() => {
     if (plan === "pro") return t("dashboard.plan.pro");
     if (plan === "free") return t("dashboard.plan.free");
-    return plan.toUpperCase();
+    return String(plan).toUpperCase();
   }, [plan, t]);
   
   // Calculate expenses by category for the chart (backward compatibility)

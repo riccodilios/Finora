@@ -327,7 +327,7 @@ export default function ArticlesPage() {
                   {newsError}
                 </p>
                 <Button
-                  onClick={() => fetchNews(selectedRegion)}
+                  onClick={() => window.location.reload()}
                   className="bg-emerald-600 hover:bg-emerald-500"
                 >
                   <RefreshCw className={`w-4 h-4 ${isRTL ? "ml-2" : "mr-2"}`} />

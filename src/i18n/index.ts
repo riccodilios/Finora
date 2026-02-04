@@ -1,6 +1,7 @@
 import { ar, en, type TranslationKey } from "./dictionaries";
 
 export type Language = "en" | "ar";
+export type { TranslationKey };
 
 export function getLocale(language: Language): string {
   return language === "ar" ? "ar-SA" : "en-US";

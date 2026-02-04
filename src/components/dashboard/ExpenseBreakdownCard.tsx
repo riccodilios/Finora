@@ -32,7 +32,7 @@ export function ExpenseBreakdownCard({
       <CardContent className="pb-4">
         <ExpenseBreakdownChart
           monthlyExpenses={monthlyExpenses}
-          expensesByCategory={expensesByCategory}
+          expensesByCategory={typeof expensesByCategory === "string" ? expensesByCategory : expensesByCategory ? JSON.stringify(expensesByCategory) : undefined}
           expenses={expenses}
         />
       </CardContent>

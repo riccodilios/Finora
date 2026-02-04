@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     
     // Clear old cache entries to prevent stale data
     const now = Date.now();
-    for (const [key, entry] of cache.entries()) {
+    for (const [key, entry] of Array.from(cache.entries())) {
       if (now - entry.timestamp > CACHE_TTL) {
         cache.delete(key);
       }

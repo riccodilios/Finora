@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useCurrency } from "@/components/CurrencyProvider";
+import { formatCurrency as formatCurrencyUtil } from "@/lib/currency";
+import type { Currency } from "@/lib/currency";
 
 /**
  * Hook for formatting currency values in components
@@ -38,7 +40,7 @@ export function useCurrencyFormat() {
  * For real-time updates, use the async version
  */
 export function useCurrencyFormatSync() {
-  const { currency, format } = useCurrency();
+  const { currency, convert } = useCurrency();
   const [convertedAmounts, setConvertedAmounts] = useState<Map<number, number>>(new Map());
 
   const formatCurrencySync = (
@@ -52,16 +54,20 @@ export function useCurrencyFormatSync() {
     // Use cached conversion if available
     const cached = convertedAmounts.get(amountSAR);
     if (cached !== undefined) {
-      return format(cached, currency, options).catch(() => `${amountSAR.toLocaleString()} SAR`);
+      return formatCurrencyUtil(cached, currency, options);
     }
 
     // Trigger async conversion and cache result
-    format(amountSAR, options).then((formatted) => {
-      // Cache will be updated on next render
+    convert(amountSAR).then((converted) => {
+      setConvertedAmounts((prev) => {
+        const next = new Map(prev);
+        next.set(amountSAR, converted);
+        return next;
+      });
     });
 
     // Return placeholder with SAR for now
-    return `${amountSAR.toLocaleString()} ${currency}`;
+    return formatCurrencyUtil(amountSAR, currency, options);
   };
 
   return {

@@ -117,6 +117,7 @@ export const en = {
   "admin.unauthorizedMessage": "You do not have admin access.",
   "admin.error": "Error",
   "admin.users": "All Users",
+  "admin.loading": "Verifying admin access...",
   "admin.noUsers": "No users found",
   "admin.userId": "User ID",
   "admin.createdAt": "Created",
@@ -218,6 +219,16 @@ export const en = {
     "Your payment history and downloadable invoices will appear here after your first billing cycle completes.",
   "subscription.billingHistory.freeDescription":
     "Payment history, invoices, and subscription details will be available here once you upgrade to a Pro subscription.",
+
+  // Billing
+  "billing.verifying": "Verifying Payment",
+  "billing.verifyingDescription": "Please wait while we confirm your subscription...",
+  "billing.success": "Payment Successful!",
+  "billing.successDescription": "Your subscription has been activated successfully.",
+  "billing.error": "Payment Verification Failed",
+  "billing.errorDescription": "We couldn't verify your payment. Please contact support if you were charged.",
+  "billing.backToDashboard": "Back to Dashboard",
+  "billing.goToDashboard": "Go to Dashboard",
 
   // Settings
   "settings.title": "Settings",
@@ -422,6 +433,7 @@ export const ar: Record<TranslationKey, string> = {
   "admin.unauthorizedMessage": "ليس لديك صلاحية الوصول كمسؤول.",
   "admin.error": "خطأ",
   "admin.users": "جميع المستخدمين",
+  "admin.loading": "جارٍ التحقق من صلاحيات الإدارة...",
   "admin.noUsers": "لم يتم العثور على مستخدمين",
   "admin.userId": "معرف المستخدم",
   "admin.createdAt": "تاريخ الإنشاء",
@@ -523,6 +535,16 @@ export const ar: Record<TranslationKey, string> = {
     "سيظهر هنا سجل المدفوعات والفواتير القابلة للتحميل بعد إتمام أول دورة فوتره.",
   "subscription.billingHistory.freeDescription":
     "سيظهر هنا سجل المدفوعات والفواتير وتفاصيل الاشتراك بعد الترقية إلى خطة برو.",
+
+  // Billing
+  "billing.verifying": "جارٍ التحقق من الدفع",
+  "billing.verifyingDescription": "يرجى الانتظار بينما نؤكد اشتراكك...",
+  "billing.success": "تم الدفع بنجاح!",
+  "billing.successDescription": "تم تفعيل اشتراكك بنجاح.",
+  "billing.error": "فشل التحقق من الدفع",
+  "billing.errorDescription": "لم نتمكن من التحقق من دفعتك. يرجى الاتصال بالدعم إذا تم خصم المبلغ.",
+  "billing.backToDashboard": "العودة إلى لوحة التحكم",
+  "billing.goToDashboard": "الذهاب إلى لوحة التحكم",
 
   // Settings
   "settings.title": "الإعدادات",

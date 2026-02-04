@@ -62,7 +62,6 @@ export default function SignInPage() {
             routing="hash"
             signUpUrl="/sign-up"
             afterSignInUrl={safeRedirectUrl}
-            fallbackRedirectUrl="/dashboard"
             appearance={{
               elements: {
                 rootBox: "w-full flex justify-center",
