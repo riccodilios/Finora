@@ -287,19 +287,48 @@ export const toggleAdminStatus = mutation({
 export const getAllArticles = query({
   args: { adminUserId: v.string() },
   handler: async (ctx, args) => {
-    // Verify admin (main admin user is always admin)
     const MAIN_ADMIN_USER_ID = "user_38vftq2ScgNF9AEmYVnswcUuVpH";
-    const isMainAdmin = args.adminUserId === MAIN_ADMIN_USER_ID;
+    const normalizedAdminUserId = (args.adminUserId || "").trim();
+    const normalizedMainAdminId = MAIN_ADMIN_USER_ID.trim();
+    const isMainAdmin = normalizedAdminUserId === normalizedMainAdminId;
     
-    if (!isMainAdmin) {
-      const admin = await ctx.db
-        .query("users")
-        .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", args.adminUserId))
-        .first();
+    safeLog("getAllArticles called", { 
+      adminUserId: args.adminUserId,
+      normalizedAdminUserId,
+      isMainAdmin,
+      expectedMainAdmin: normalizedMainAdminId,
+    });
+    
+    if (isMainAdmin) {
+      safeLog("Main admin access granted for getAllArticles", { 
+        adminUserId: args.adminUserId,
+        normalizedAdminUserId 
+      });
       
-      if (!admin || admin.isAdmin !== true) {
-        throw new Error("Unauthorized: Admin access required");
-      }
+      const articles = await ctx.db
+        .query("articles")
+        .withIndex("by_published")
+        .order("desc")
+        .collect();
+      return articles;
+    }
+    
+    // Only check database for non-main-admin users
+    const admin = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", normalizedAdminUserId))
+      .first();
+    
+    if (!admin || admin.isAdmin !== true) {
+      safeError("Unauthorized admin access attempt for getAllArticles", { 
+        adminUserId: args.adminUserId,
+        normalizedAdminUserId,
+        adminFound: !!admin,
+        adminIsAdmin: admin?.isAdmin,
+        expectedMainAdmin: MAIN_ADMIN_USER_ID,
+        isMainAdminCheck: normalizedAdminUserId === MAIN_ADMIN_USER_ID
+      });
+      throw new Error("Unauthorized: Admin access required");
     }
 
     const articles = await ctx.db
