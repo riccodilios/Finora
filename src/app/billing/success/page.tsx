@@ -22,8 +22,15 @@ export default function BillingSuccessPage() {
   const searchParams = useSearchParams();
   const { t, isRTL } = useLanguage();
   const [isVerifying, setIsVerifying] = useState(true);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check for payment ID from Moyasar redirect
+    const id = searchParams.get("id") || searchParams.get("invoice_id") || searchParams.get("payment_id");
+    if (id) {
+      setPaymentId(id);
+    }
+
     if (!isLoaded || !user) {
       return;
     }
@@ -31,13 +38,9 @@ export default function BillingSuccessPage() {
     // Verify payment and update subscription
     const verifyPayment = async () => {
       try {
-        // Payment is verified via webhook, just redirect after a moment
+        // Payment is verified via webhook, show success message
         setTimeout(() => {
           setIsVerifying(false);
-          // Redirect to dashboard after 3 seconds
-          setTimeout(() => {
-            router.push("/dashboard");
-          }, 3000);
         }, 2000);
       } catch (error) {
         console.error("Payment verification error:", error);
@@ -46,7 +49,7 @@ export default function BillingSuccessPage() {
     };
 
     verifyPayment();
-  }, [isLoaded, user, router]);
+  }, [isLoaded, user, router, searchParams]);
 
   if (!isLoaded) {
     return (
@@ -81,12 +84,20 @@ export default function BillingSuccessPage() {
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {t("billing.successDescription") || "Your Pro subscription has been successfully activated. You now have access to all Pro features."}
               </p>
-              <Link
-                href="/dashboard"
-                className="inline-block px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-500 transition-colors"
-              >
-                {t("billing.goToDashboard") || "Go to Dashboard"}
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link
+                  href="/dashboard"
+                  className="inline-block px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-500 transition-colors text-center"
+                >
+                  {t("billing.goToDashboard") || "Go to Dashboard"}
+                </Link>
+                <Link
+                  href="/dashboard/subscription"
+                  className="inline-block px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-center"
+                >
+                  {t("subscription.title") || "View Subscription"}
+                </Link>
+              </div>
             </>
           )}
         </div>

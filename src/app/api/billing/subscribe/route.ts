@@ -110,6 +110,8 @@ export async function POST(request: NextRequest) {
         currency: "SAR",
         description: "Finora Pro Plan - Service Subscription Fee", // Labeled as service subscription
         callback_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/billing/success`,
+        // Add redirect_url for automatic redirect after payment
+        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/billing/success`,
         metadata: {
           clerkUserId: userId,
           email,
