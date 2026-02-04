@@ -91,7 +91,10 @@ export async function POST(request: NextRequest) {
     
     if (event.type === 'payment.paid') {
       const payment = event.data;
-      const metadata = payment.metadata as { clerkUserId?: string };
+      const metadata = payment.metadata as { 
+        clerkUserId?: string;
+        billingCycle?: "monthly" | "annual";
+      };
       const clerkUserId = metadata?.clerkUserId;
 
       if (!clerkUserId) {
@@ -102,12 +105,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-console.log(`Processing payment ${payment.id} for user ${clerkUserId}`);
-      
-      const metadata = payment.metadata as { 
-        clerkUserId?: string;
-        billingCycle?: "monthly" | "annual";
-      };
+      console.log(`Processing payment ${payment.id} for user ${clerkUserId}`);
       const billingCycle = metadata?.billingCycle || "monthly";
 
       try {
