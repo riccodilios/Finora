@@ -136,13 +136,13 @@ export default function AIPage() {
   // Show locked state for Free users
   if (!isPro) {
     return (
-      <div className={`space-y-6 ${isRTL ? "text-right" : ""}`} dir={isRTL ? "rtl" : "ltr"}>
+      <div className={`space-y-4 sm:space-y-6 px-4 sm:px-0 ${isRTL ? "text-right" : ""}`} dir={isRTL ? "rtl" : "ltr"}>
         <div className={isRTL ? "text-right" : "text-left"}>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{t("ai.title")}</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t("ai.subtitle")}</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{t("ai.title")}</h1>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{t("ai.subtitle")}</p>
         </div>
 
-        <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow p-8 border-2 border-gray-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-[#1e293b] rounded-lg sm:rounded-xl shadow p-4 sm:p-8 border-2 border-gray-200 dark:border-slate-700">
           <div className="text-center py-8">
             <div className="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock size={24} className="w-6 h-6 text-gray-500 dark:text-gray-400 shrink-0" />
@@ -204,11 +204,11 @@ export default function AIPage() {
   };
 
   return (
-    <div className={`space-y-6 ${isRTL ? "text-right" : ""}`} dir={isRTL ? "rtl" : "ltr"}>
-      <div className={`flex ${isRTL ? "flex-row-reverse" : ""} justify-between items-start`}>
-        <div className={isRTL ? "text-right" : "text-left"}>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{t("ai.title")}</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t("ai.subtitle")}</p>
+    <div className={`space-y-4 sm:space-y-6 px-4 sm:px-0 ${isRTL ? "text-right" : ""}`} dir={isRTL ? "rtl" : "ltr"}>
+      <div className={`flex flex-col sm:flex-row ${isRTL ? "sm:flex-row-reverse" : ""} justify-between items-start gap-3 sm:gap-0`}>
+        <div className={`${isRTL ? "text-right" : "text-left"} w-full sm:w-auto`}>
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{t("ai.title")}</h1>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{t("ai.subtitle")}</p>
         </div>
         <div className={isRTL ? "text-left" : "text-right"}>
           <div className="text-sm text-gray-600 dark:text-gray-400">

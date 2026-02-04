@@ -134,15 +134,15 @@ export default function ArticlesPage() {
   };
 
   return (
-    <div className={`space-y-6 transition-colors ${isRTL ? "text-right" : ""}`} dir={isRTL ? "rtl" : "ltr"}>
+    <div className={`space-y-4 sm:space-y-6 px-4 sm:px-0 transition-colors ${isRTL ? "text-right" : ""}`} dir={isRTL ? "rtl" : "ltr"}>
       {/* Header */}
       <div 
         className={`${isRTL ? "flex flex-col items-end text-right" : "flex flex-col items-start text-left"}`} 
         dir={isRTL ? "rtl" : "ltr"}
         style={isRTL ? { textAlign: 'right', alignItems: 'flex-end' } : { textAlign: 'left', alignItems: 'flex-start' }}
       >
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2" style={isRTL ? { textAlign: 'right' } : { textAlign: 'left' }}>{t("articles.title")}</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400" style={isRTL ? { textAlign: 'right' } : { textAlign: 'left' }}>{t("articles.subtitle")}</p>
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2" style={isRTL ? { textAlign: 'right' } : { textAlign: 'left' }}>{t("articles.title")}</h1>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400" style={isRTL ? { textAlign: 'right' } : { textAlign: 'left' }}>{t("articles.subtitle")}</p>
       </div>
 
       {/* Tabs */}

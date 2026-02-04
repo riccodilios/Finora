@@ -309,16 +309,16 @@ function SettingsPageContent({
   }
 
   return (
-    <div className={`max-w-4xl mx-auto space-y-6 ${isRTL ? "text-right" : ""}`}>
+    <div className={`max-w-4xl mx-auto space-y-4 sm:space-y-6 px-4 sm:px-0 ${isRTL ? "text-right" : ""}`}>
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t("settings.title")}</h1>
-        <p className="text-gray-600 dark:text-gray-400">{t("settings.subtitle")}</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{t("settings.title")}</h1>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{t("settings.subtitle")}</p>
       </div>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* Account Info */}
-        <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow p-6 border border-gray-200 dark:border-slate-800">
-          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t("settings.account.title")}</h2>
+        <div className="bg-white dark:bg-[#1e293b] rounded-lg sm:rounded-xl shadow p-4 sm:p-6 border border-gray-200 dark:border-slate-800">
+          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900 dark:text-gray-100">{t("settings.account.title")}</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">{t("settings.account.name")}</label>
@@ -342,8 +342,8 @@ function SettingsPageContent({
         </div>
 
         {/* Financial Profile */}
-        <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow p-6 border border-gray-200 dark:border-slate-800">
-          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">{t("settings.financial.title")}</h2>
+        <div className="bg-white dark:bg-[#1e293b] rounded-lg sm:rounded-xl shadow p-4 sm:p-6 border border-gray-200 dark:border-slate-800">
+          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900 dark:text-gray-100">{t("settings.financial.title")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">{t("settings.financial.monthlyIncome")}</label>
