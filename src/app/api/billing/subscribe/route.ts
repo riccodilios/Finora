@@ -13,19 +13,32 @@ import { requireFeature, isReadOnlyMode } from "@/lib/feature-flags";
  */
 
 const isTestMode = () => {
-  return process.env.PAYMENTS_TEST_MODE === "true";
+  // Explicit test mode flag
+  if (process.env.PAYMENTS_TEST_MODE === "true") {
+    return true;
+  }
+  
+  // Auto-detect test keys (keys starting with sk_test_)
+  const secretKey = process.env.MOYASAR_SECRET_KEY || process.env.MOYASAR_SECRET_KEY_TEST;
+  if (secretKey && secretKey.startsWith("sk_test_")) {
+    return true;
+  }
+  
+  return false;
 };
 
 const getMoyasarApiUrl = () => {
-  return isTestMode() 
-    ? "https://api.moyasar.com/v1" // Test mode uses test keys
-    : "https://api.moyasar.com/v1"; // Live mode uses live keys
+  return "https://api.moyasar.com/v1"; // Same URL for both test and live
 };
 
 const getMoyasarSecretKey = () => {
-  return isTestMode()
-    ? process.env.MOYASAR_SECRET_KEY_TEST || process.env.MOYASAR_SECRET_KEY
-    : process.env.MOYASAR_SECRET_KEY;
+  // If test mode, prefer test key, fallback to regular key
+  if (isTestMode()) {
+    return process.env.MOYASAR_SECRET_KEY_TEST || process.env.MOYASAR_SECRET_KEY;
+  }
+  
+  // Live mode - use live key
+  return process.env.MOYASAR_SECRET_KEY;
 };
 
 export async function POST(request: NextRequest) {
@@ -114,10 +127,18 @@ export async function POST(request: NextRequest) {
       try {
         const errorData = JSON.parse(errorText);
         errorMessage = errorData.message || errorData.error || errorMessage;
+        
+        // Handle specific Moyasar errors
+        if (errorMessage.includes("not activated") || errorMessage.includes("Entity not activated")) {
+          errorMessage = "Your Moyasar account is not activated for live payments. Please use test keys (sk_test_...) or contact Moyasar support to activate your account for live payments.";
+        }
+        
         console.error("Moyasar API error:", {
           status: moyasarResponse.status,
           statusText: moyasarResponse.statusText,
           error: errorData,
+          testMode: isTestMode(),
+          keyPrefix: moyasarSecretKey?.substring(0, 7),
         });
       } catch {
         console.error("Moyasar API error (non-JSON):", {
