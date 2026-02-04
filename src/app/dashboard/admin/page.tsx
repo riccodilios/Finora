@@ -107,10 +107,10 @@ export default function AdminPage() {
   const updateUserPlan = useMutation(api.admin.updateUserPlan);
   const toggleAdminStatus = useMutation(api.admin.toggleAdminStatus);
   
-  // Article management
+  // Article management - use same queryArgs pattern as allUsers
   const allArticles = useQuery(
     api.admin.getAllArticles,
-    shouldCallQuery && user?.id ? { adminUserId: user.id } : "skip"
+    queryArgs
   );
   const createArticle = useMutation(api.admin.createArticle);
   const updateArticle = useMutation(api.admin.updateArticle);
