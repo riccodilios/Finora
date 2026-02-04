@@ -99,15 +99,12 @@ export default function SubscriptionPage() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
         
-        // Provide user-friendly error messages based on status code
-        let errorMessage = t("subscription.error.generic");
-        if (response.status === 400) {
-          errorMessage = errorData.error || t("subscription.error.generic");
-        } else if (response.status === 500) {
-          errorMessage = t("subscription.error.generic");
-        } else {
-          errorMessage = errorData.error || t("subscription.error.generic");
-        }
+        // Show the actual error message from the API
+        const errorMessage = errorData.error || t("subscription.error.generic");
+        console.error("Payment API error:", {
+          status: response.status,
+          error: errorData,
+        });
         
         throw new Error(errorMessage);
       }

@@ -73,9 +73,13 @@ export async function POST(request: NextRequest) {
 
     const moyasarSecretKey = getMoyasarSecretKey();
     if (!moyasarSecretKey) {
-      console.error("Moyasar secret key not configured");
+      console.error("Moyasar secret key not configured", {
+        testMode: isTestMode(),
+        hasTestKey: !!process.env.MOYASAR_SECRET_KEY_TEST,
+        hasLiveKey: !!process.env.MOYASAR_SECRET_KEY,
+      });
       return NextResponse.json(
-        { error: "Payment service configuration error" },
+        { error: "Payment service configuration error: Moyasar secret key is missing. Please configure MOYASAR_SECRET_KEY in your environment variables." },
         { status: 500 }
       );
     }
@@ -105,10 +109,27 @@ export async function POST(request: NextRequest) {
 
     if (!moyasarResponse.ok) {
       const errorText = await moyasarResponse.text();
-      console.error("Moyasar API error:", errorText);
+      let errorMessage = "Failed to create subscription payment";
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || errorData.error || errorMessage;
+        console.error("Moyasar API error:", {
+          status: moyasarResponse.status,
+          statusText: moyasarResponse.statusText,
+          error: errorData,
+        });
+      } catch {
+        console.error("Moyasar API error (non-JSON):", {
+          status: moyasarResponse.status,
+          statusText: moyasarResponse.statusText,
+          response: errorText,
+        });
+      }
+      
       return NextResponse.json(
-        { error: "Failed to create subscription payment" },
-        { status: 500 }
+        { error: errorMessage },
+        { status: moyasarResponse.status >= 400 && moyasarResponse.status < 500 ? 400 : 500 }
       );
     }
 
@@ -124,9 +145,22 @@ export async function POST(request: NextRequest) {
       billingCycle,
     });
   } catch (error: any) {
-    console.error("Subscription creation failed:", error);
+    console.error("Subscription creation failed:", {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
+    
+    // Provide more specific error messages
+    let errorMessage = "Subscription creation failed. Please try again.";
+    if (error.message?.includes("fetch")) {
+      errorMessage = "Failed to connect to payment service. Please check your internet connection and try again.";
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     return NextResponse.json(
-      { error: "Subscription creation failed. Please try again." },
+      { error: errorMessage },
       { status: 500 }
     );
   }
