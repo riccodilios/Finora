@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Loader2, RefreshCw } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 import Link from "next/link";
 
@@ -23,6 +23,8 @@ export default function BillingSuccessPage() {
   const { t, isRTL } = useLanguage();
   const [isVerifying, setIsVerifying] = useState(true);
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [isManuallyVerifying, setIsManuallyVerifying] = useState(false);
 
   useEffect(() => {
     // Check for payment ID from Moyasar redirect
@@ -38,10 +40,35 @@ export default function BillingSuccessPage() {
     // Verify payment and update subscription
     const verifyPayment = async () => {
       try {
-        // Payment is verified via webhook, show success message
-        setTimeout(() => {
-          setIsVerifying(false);
-        }, 2000);
+        // Wait a moment for webhook to process
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // If we have a payment ID, try to verify manually (for test payments)
+        if (paymentId && user?.id) {
+          try {
+            const verifyResponse = await fetch("/api/billing/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                paymentId,
+                userId: user.id,
+              }),
+            });
+
+            if (verifyResponse.ok) {
+              console.log("Payment verified successfully");
+            } else {
+              const errorData = await verifyResponse.json();
+              console.log("Payment verification response:", errorData);
+              // Don't show error - webhook might have already processed it
+            }
+          } catch (error) {
+            console.error("Manual verification error:", error);
+            // Don't show error - webhook might have already processed it
+          }
+        }
+        
+        setIsVerifying(false);
       } catch (error) {
         console.error("Payment verification error:", error);
         setIsVerifying(false);
@@ -84,6 +111,11 @@ export default function BillingSuccessPage() {
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {t("billing.successDescription") || "Your Pro subscription has been successfully activated. You now have access to all Pro features."}
               </p>
+              {verificationError && (
+                <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-800 dark:text-amber-200">
+                  {verificationError}
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   href="/dashboard"
@@ -97,6 +129,51 @@ export default function BillingSuccessPage() {
                 >
                   {t("subscription.title") || "View Subscription"}
                 </Link>
+                {paymentId && (
+                  <button
+                    onClick={async () => {
+                      if (!user?.id || !paymentId) return;
+                      setIsManuallyVerifying(true);
+                      setVerificationError(null);
+                      try {
+                        const response = await fetch("/api/billing/verify", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            paymentId,
+                            userId: user.id,
+                          }),
+                        });
+                        const data = await response.json();
+                        if (response.ok) {
+                          setVerificationError(null);
+                          // Refresh page to show updated subscription
+                          setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                          setVerificationError(data.error || "Failed to verify payment");
+                        }
+                      } catch (error: any) {
+                        setVerificationError("Failed to verify payment. Please try again.");
+                      } finally {
+                        setIsManuallyVerifying(false);
+                      }
+                    }}
+                    disabled={isManuallyVerifying}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-500 transition-colors text-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isManuallyVerifying ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        Verify Payment
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </>
           )}

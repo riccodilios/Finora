@@ -39,35 +39,7 @@ export async function POST(request: NextRequest) {
     const signature = request.headers.get('moyasar-signature');
     const webhookSecret = process.env.MOYASAR_WEBHOOK_SECRET;
 
-    // For development without webhook secret, log and return success
-    if (!webhookSecret || webhookSecret === 'your_webhook_secret_from_moyasar_dashboard') {
-      console.log('Webhook secret not configured, logging event for development');
-      try {
-        const event = JSON.parse(rawBody);
-        console.log('Webhook event type:', event.type);
-        console.log('Payment ID:', event.data?.id);
-        console.log('Metadata:', event.data?.metadata);
-      } catch (e) {
-        console.log('Raw webhook body:', rawBody);
-      }
-      
-      return NextResponse.json({ 
-        received: true,
-        message: 'Webhook received (development mode)',
-        note: 'Configure MOYASAR_WEBHOOK_SECRET in production'
-      });
-    }
-
-    // In production, verify the signature
-    if (!signature) {
-      console.error('No Moyasar signature in production');
-      return NextResponse.json(
-        { error: 'Unauthorized: No signature' },
-        { status: 401 }
-      );
-    }
-
-    // Parse webhook event
+    // Parse event first (needed for both dev and prod)
     let event;
     try {
       event = JSON.parse(rawBody);
@@ -76,6 +48,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid webhook payload' },
         { status: 400 }
+      );
+    }
+
+    // For development/test mode without webhook secret, still process payments
+    if (!webhookSecret || webhookSecret === 'your_webhook_secret_from_moyasar_dashboard') {
+      console.log('Webhook secret not configured, processing in development/test mode');
+      console.log('Webhook event type:', event.type);
+      console.log('Payment ID:', event.data?.id);
+      console.log('Metadata:', event.data?.metadata);
+      
+      // Continue to process the payment even without signature verification in test mode
+      // This allows test payments to work without webhook configuration
+    } else {
+      // In production, verify the signature
+      if (!signature) {
+        console.error('No Moyasar signature in production');
+        return NextResponse.json(
+          { error: 'Unauthorized: No signature' },
+          { status: 401 }
+        );
+      }
+      // TODO: Verify signature using Moyasar package in production
+    }
+
+    // In production, verify the signature
+    if (!signature) {
+      console.error('No Moyasar signature in production');
+      return NextResponse.json(
+        { error: 'Unauthorized: No signature' },
+        { status: 401 }
       );
     }
 
@@ -104,20 +106,28 @@ export async function POST(request: NextRequest) {
         const api = await getConvexApi();
         
         // Update subscription status (ONLY status, plan, billing period - NO payment details)
-        await convexHttpClient.mutation(api.billing.updateSubscriptionFromPayment, {
+        const result = await convexHttpClient.mutation(api.billing.updateSubscriptionFromPayment, {
           clerkUserId,
           moyasarPaymentId: payment.id,
           billingCycle,
           amount: payment.amount,
           currency: payment.currency,
-          timestamp: new Date(payment.created_at).toISOString(),
+          timestamp: new Date(payment.created_at || payment.timestamp || Date.now()).toISOString(),
         });
         
-        console.log(`Successfully updated subscription for user ${clerkUserId} via webhook`);
+        console.log(`Successfully updated subscription for user ${clerkUserId} via webhook`, result);
       } catch (error: any) {
-        console.error('Failed to process webhook payment:', error);
-        // Don't return error to Moyasar - just log it
-        // Moyasar will retry if we return error
+        console.error('Failed to process webhook payment:', {
+          error: error.message,
+          stack: error.stack,
+          clerkUserId,
+          paymentId: payment.id,
+        });
+        // Return error so Moyasar knows to retry
+        return NextResponse.json(
+          { error: 'Failed to process payment', details: error.message },
+          { status: 500 }
+        );
       }
       
       return NextResponse.json({ 
