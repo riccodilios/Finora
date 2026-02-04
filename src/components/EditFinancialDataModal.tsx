@@ -233,9 +233,9 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
       }}
     >
       <div 
-        className="shadow-2xl max-h-[90vh] overflow-hidden flex flex-col mx-4 my-4"
+        className="shadow-2xl max-h-[90vh] overflow-hidden flex flex-col mx-2 sm:mx-4 my-2 sm:my-4 w-full sm:w-auto"
         style={{ 
-          width: '100%',
+          width: 'calc(100% - 1rem)',
           maxWidth: '650px',
           borderRadius: '8px',
           border: 'none',
@@ -253,14 +253,14 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-10 py-8 bg-gray-50 dark:bg-gray-900/50 relative">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{t.title}</h2>
+        <div className="flex items-center justify-between px-4 sm:px-6 md:px-10 py-4 sm:py-6 md:py-8 bg-gray-50 dark:bg-gray-900/50 relative">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 dark:text-gray-100 pr-8">{t.title}</h2>
           <button
             onClick={handleCancel}
             className="absolute p-2 transition-all duration-200"
             style={{ 
-              top: '16px',
-              right: '16px',
+              top: '12px',
+              right: '12px',
               borderRadius: '6px',
               backgroundColor: 'transparent',
             }}
@@ -276,7 +276,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
         </div>
 
         {/* Tabs */}
-        <div className="flex justify-center px-10 py-3 bg-transparent gap-2">
+        <div className="flex justify-start sm:justify-center px-4 sm:px-6 md:px-10 py-3 bg-transparent gap-2 overflow-x-auto scrollbar-hide">
           {([
             { key: "income", label: t.income },
             { key: "expenses", label: t.expenses },
@@ -287,7 +287,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
             <button
               key={key}
               onClick={() => setActiveTab(key as any)}
-              className="px-4 py-3 text-sm font-medium transition-all duration-300 ease-in-out relative"
+              className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-300 ease-in-out relative whitespace-nowrap flex-shrink-0"
               style={{ 
                 borderRadius: '6px',
                 backgroundColor: activeTab === key
@@ -315,7 +315,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-10 py-6 bg-transparent">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-10 py-4 sm:py-6 bg-transparent">
           {/* Income Sources */}
           {activeTab === "income" && (
             <div 
@@ -367,7 +367,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                   { value: "other", label: t.other },
                 ];
                 return (
-                  <div key={source.id} className="grid grid-cols-12 gap-4 p-5 bg-gray-50 dark:bg-gray-900/50" style={{ borderRadius: '12px' }}>
+                  <div key={source.id} className="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 p-4 sm:p-5 bg-gray-50 dark:bg-gray-900/50" style={{ borderRadius: '12px' }}>
                     <input
                       type="text"
                       placeholder={t.sourceName}
@@ -377,7 +377,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].name = e.target.value;
                         setIncomeSources(updated);
                       }}
-                      className="col-span-4 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-4 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -409,7 +409,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].amount = parseFloat(e.target.value) || 0;
                         setIncomeSources(updated);
                       }}
-                      className="col-span-3 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-3 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -432,11 +432,11 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         e.currentTarget.style.borderColor = 'transparent';
                       }}
                     />
-                    <div className="col-span-4 relative">
+                    <div className="w-full sm:col-span-4 relative">
                       <button
                         type="button"
                         onClick={() => setOpenDropdowns({ ...openDropdowns, [dropdownKey]: !isDropdownOpen })}
-                        className="w-full px-4 py-3 text-left transition-all flex items-center justify-between"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left transition-all flex items-center justify-between text-sm sm:text-base"
                         style={{ 
                           borderRadius: '6px', 
                           border: '1px solid transparent',
@@ -510,7 +510,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                     </div>
                     <button
                       onClick={() => setIncomeSources(incomeSources.filter((_, i) => i !== index))}
-                      className="col-span-1 p-3 transition-all"
+                      className="w-full sm:w-auto sm:col-span-1 p-2 sm:p-3 transition-all flex items-center justify-center sm:justify-start"
                       style={{ 
                         borderRadius: '6px',
                         backgroundColor: 'transparent',
@@ -597,7 +597,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                   { value: "variable", label: t.variable },
                 ];
                 return (
-                  <div key={expense.id} className="grid grid-cols-12 gap-4 p-5 bg-gray-50 dark:bg-gray-900/50" style={{ borderRadius: '12px' }}>
+                  <div key={expense.id} className="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 p-4 sm:p-5 bg-gray-50 dark:bg-gray-900/50" style={{ borderRadius: '12px' }}>
                     <input
                       type="text"
                       placeholder={t.expenseName}
@@ -607,7 +607,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].name = e.target.value;
                         setExpenses(updated);
                       }}
-                      className="col-span-3 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-3 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -639,7 +639,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].amount = parseFloat(e.target.value) || 0;
                         setExpenses(updated);
                       }}
-                      className="col-span-2 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-2 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -662,11 +662,11 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         e.currentTarget.style.borderColor = 'transparent';
                       }}
                     />
-                    <div className="col-span-3 relative">
+                    <div className="w-full sm:col-span-3 relative">
                       <button
                         type="button"
                         onClick={() => setOpenDropdowns({ ...openDropdowns, [categoryDropdownKey]: !isCategoryOpen })}
-                        className="w-full px-4 py-3 text-left transition-all flex items-center justify-between"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left transition-all flex items-center justify-between text-sm sm:text-base"
                         style={{ 
                           borderRadius: '6px', 
                           border: '1px solid transparent',
@@ -738,11 +738,11 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         </div>
                       )}
                     </div>
-                    <div className="col-span-3 relative">
+                    <div className="w-full sm:col-span-3 relative">
                       <button
                         type="button"
                         onClick={() => setOpenDropdowns({ ...openDropdowns, [typeDropdownKey]: !isTypeOpen })}
-                        className="w-full px-4 py-3 text-left transition-all flex items-center justify-between"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left transition-all flex items-center justify-between text-sm sm:text-base"
                         style={{ 
                           borderRadius: '6px', 
                           border: '1px solid transparent',
@@ -816,7 +816,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                     </div>
                     <button
                       onClick={() => setExpenses(expenses.filter((_, i) => i !== index))}
-                      className="col-span-1 p-3 transition-all"
+                      className="w-full sm:w-auto sm:col-span-1 p-2 sm:p-3 transition-all flex items-center justify-center sm:justify-start"
                       style={{ 
                         borderRadius: '6px',
                         backgroundColor: 'transparent',
@@ -895,7 +895,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                   { value: "other", label: t.other },
                 ];
                 return (
-                  <div key={debt.id} className="grid grid-cols-12 gap-4 p-5 bg-gray-50 dark:bg-gray-900/50" style={{ borderRadius: '12px' }}>
+                  <div key={debt.id} className="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 p-4 sm:p-5 bg-gray-50 dark:bg-gray-900/50" style={{ borderRadius: '12px' }}>
                     <input
                       type="text"
                       placeholder={t.debtName}
@@ -905,7 +905,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].name = e.target.value;
                         setDebts(updated);
                       }}
-                      className="col-span-3 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-3 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -937,7 +937,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].principal = parseFloat(e.target.value) || 0;
                         setDebts(updated);
                       }}
-                      className="col-span-2 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-2 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -969,7 +969,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].monthlyPayment = parseFloat(e.target.value) || 0;
                         setDebts(updated);
                       }}
-                      className="col-span-2 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-2 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -1001,7 +1001,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].interestRate = parseFloat(e.target.value) || undefined;
                         setDebts(updated);
                       }}
-                      className="col-span-2 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-2 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -1024,11 +1024,11 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         e.currentTarget.style.borderColor = 'transparent';
                       }}
                     />
-                    <div className="col-span-2 relative">
+                    <div className="w-full sm:col-span-2 relative">
                       <button
                         type="button"
                         onClick={() => setOpenDropdowns({ ...openDropdowns, [debtTypeDropdownKey]: !isDebtTypeOpen })}
-                        className="w-full px-4 py-3 text-left transition-all flex items-center justify-between"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left transition-all flex items-center justify-between text-sm sm:text-base"
                         style={{ 
                           borderRadius: '6px', 
                           border: '1px solid transparent',
@@ -1102,7 +1102,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                     </div>
                     <button
                       onClick={() => setDebts(debts.filter((_, i) => i !== index))}
-                      className="col-span-1 p-3 transition-all"
+                      className="w-full sm:w-auto sm:col-span-1 p-2 sm:p-3 transition-all flex items-center justify-center sm:justify-start"
                       style={{ 
                         borderRadius: '6px',
                         backgroundColor: 'transparent',
@@ -1181,7 +1181,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                   { value: "other", label: t.other },
                 ];
                 return (
-                  <div key={investment.id} className="grid grid-cols-12 gap-4 p-5 bg-gray-50 dark:bg-gray-900/50" style={{ borderRadius: '12px' }}>
+                  <div key={investment.id} className="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 p-4 sm:p-5 bg-gray-50 dark:bg-gray-900/50" style={{ borderRadius: '12px' }}>
                     <input
                       type="text"
                       placeholder={t.investmentName}
@@ -1191,7 +1191,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].name = e.target.value;
                         setInvestments(updated);
                       }}
-                      className="col-span-4 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-4 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -1223,7 +1223,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].value = parseFloat(e.target.value) || 0;
                         setInvestments(updated);
                       }}
-                      className="col-span-3 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-3 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -1246,11 +1246,11 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         e.currentTarget.style.borderColor = 'transparent';
                       }}
                     />
-                    <div className="col-span-3 relative">
+                    <div className="w-full sm:col-span-3 relative">
                       <button
                         type="button"
                         onClick={() => setOpenDropdowns({ ...openDropdowns, [investmentTypeDropdownKey]: !isInvestmentTypeOpen })}
-                        className="w-full px-4 py-3 text-left transition-all flex items-center justify-between"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left transition-all flex items-center justify-between text-sm sm:text-base"
                         style={{ 
                           borderRadius: '6px', 
                           border: '1px solid transparent',
@@ -1331,7 +1331,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                         updated[index].monthlyContribution = parseFloat(e.target.value) || undefined;
                         setInvestments(updated);
                       }}
-                      className="col-span-1 px-4 py-3 transition-all"
+                      className="w-full sm:col-span-1 px-3 sm:px-4 py-2 sm:py-3 transition-all text-sm sm:text-base"
                       style={{ 
                         borderRadius: '6px', 
                         border: '1px solid transparent',
@@ -1358,7 +1358,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                       onClick={() =>
                         setInvestments(investments.filter((_, i) => i !== index))
                       }
-                      className="col-span-1 flex h-8 w-8 items-center justify-center mx-auto -mr-1 rounded-full border border-transparent text-red-600 hover:border-red-500 focus:border-red-500 transition-colors"
+                      className="w-full sm:w-auto sm:col-span-1 flex h-10 sm:h-8 w-full sm:w-8 items-center justify-center mx-auto rounded-full border border-transparent text-red-600 hover:border-red-500 focus:border-red-500 transition-colors"
                     >
                       <Trash2 size={16} className="w-4 h-4 shrink-0" />
                     </button>
@@ -1493,11 +1493,11 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-4 px-10 py-8 bg-gray-50 dark:bg-gray-900/50">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-4 px-4 sm:px-6 md:px-10 py-4 sm:py-6 md:py-8 bg-gray-50 dark:bg-gray-900/50">
           <button
             onClick={handleCancel}
             disabled={isSaving}
-            className="px-6 py-2 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="w-full sm:w-auto px-6 py-2.5 sm:py-2 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base"
             style={{ 
               borderRadius: '6px',
               backgroundColor: isDark ? '#0e131a' : 'rgba(249, 250, 251, 0.8)',
@@ -1526,7 +1526,7 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-6 py-2 text-white transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-white transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base"
             style={{ 
               borderRadius: '4px',
               backgroundColor: '#22c55e',
