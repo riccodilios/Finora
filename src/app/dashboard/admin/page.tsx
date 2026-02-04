@@ -20,6 +20,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("users");
   const [showArticleDialog, setShowArticleDialog] = useState(false);
   const [editingArticle, setEditingArticle] = useState<any | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Main admin user ID (always has access)
   const MAIN_ADMIN_USER_ID = "user_38vftq2ScgNF9AEmYVnswcUuVpH";
@@ -120,14 +121,14 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  // Article form state
+  // Article form state - initialize date in useEffect to avoid hydration mismatch
   const [articleForm, setArticleForm] = useState({
     language: "en" as "en" | "ar",
     title: "",
     excerpt: "",
     content: "",
     author: "",
-    publishedAt: new Date().toISOString().split("T")[0],
+    publishedAt: "",
     readTime: 5,
     category: "",
     tags: [] as string[],
@@ -138,6 +139,21 @@ export default function AdminPage() {
   });
   const [tagInput, setTagInput] = useState("");
   const [isSavingArticle, setIsSavingArticle] = useState(false);
+  
+  // Prevent hydration mismatch by only rendering after mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Initialize publishedAt date on client side only to avoid hydration mismatch
+  useEffect(() => {
+    if (isMounted && !articleForm.publishedAt) {
+      setArticleForm(prev => ({
+        ...prev,
+        publishedAt: new Date().toISOString().split("T")[0]
+      }));
+    }
+  }, [isMounted]);
 
   useEffect(() => {
     if (success) {
@@ -153,7 +169,8 @@ export default function AdminPage() {
     }
   }, [error]);
 
-  if (!isLoaded) {
+  // Prevent hydration mismatch
+  if (!isMounted || !isLoaded) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
@@ -424,13 +441,14 @@ export default function AdminPage() {
                     size="sm"
                     onClick={() => {
                       setEditingArticle(null);
+                      const today = new Date().toISOString().split("T")[0];
                       setArticleForm({
                         language: "en",
                         title: "",
                         excerpt: "",
                         content: "",
                         author: "",
-                        publishedAt: new Date().toISOString().split("T")[0],
+                        publishedAt: today,
                         readTime: 5,
                         category: "",
                         tags: [],
@@ -672,13 +690,14 @@ export default function AdminPage() {
                             }
                             setShowArticleDialog(false);
                             setEditingArticle(null);
+                            const today = new Date().toISOString().split("T")[0];
                             setArticleForm({
                               language: "en",
                               title: "",
                               excerpt: "",
                               content: "",
                               author: "",
-                              publishedAt: new Date().toISOString().split("T")[0],
+                              publishedAt: today,
                               readTime: 5,
                               category: "",
                               tags: [],
