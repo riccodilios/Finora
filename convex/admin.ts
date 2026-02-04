@@ -280,3 +280,191 @@ export const toggleAdminStatus = mutation({
     return { success: true };
   },
 });
+
+/**
+ * Admin: Get all articles (for admin interface)
+ */
+export const getAllArticles = query({
+  args: { adminUserId: v.string() },
+  handler: async (ctx, args) => {
+    // Verify admin (main admin user is always admin)
+    const MAIN_ADMIN_USER_ID = "user_38vftq2ScgNF9AEmYVnswcUuVpH";
+    const isMainAdmin = args.adminUserId === MAIN_ADMIN_USER_ID;
+    
+    if (!isMainAdmin) {
+      const admin = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", args.adminUserId))
+        .first();
+      
+      if (!admin || admin.isAdmin !== true) {
+        throw new Error("Unauthorized: Admin access required");
+      }
+    }
+
+    const articles = await ctx.db
+      .query("articles")
+      .withIndex("by_published")
+      .order("desc")
+      .collect();
+    return articles;
+  },
+});
+
+/**
+ * Admin: Create article
+ */
+export const createArticle = mutation({
+  args: {
+    adminUserId: v.string(),
+    language: v.optional(v.union(v.literal("en"), v.literal("ar"))),
+    title: v.string(),
+    excerpt: v.string(),
+    content: v.string(),
+    author: v.string(),
+    publishedAt: v.string(),
+    readTime: v.number(),
+    category: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    region: v.optional(v.string()),
+    riskProfile: v.optional(v.union(v.literal("conservative"), v.literal("moderate"), v.literal("aggressive"))),
+    financialLevel: v.optional(v.union(v.literal("beginner"), v.literal("intermediate"), v.literal("advanced"))),
+    plan: v.optional(v.union(v.literal("free"), v.literal("pro"))),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin
+    const MAIN_ADMIN_USER_ID = "user_38vftq2ScgNF9AEmYVnswcUuVpH";
+    const isMainAdmin = args.adminUserId === MAIN_ADMIN_USER_ID;
+    
+    if (!isMainAdmin) {
+      const admin = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", args.adminUserId))
+        .first();
+      
+      if (!admin || admin.isAdmin !== true) {
+        throw new Error("Unauthorized: Admin access required");
+      }
+    }
+
+    const now = new Date().toISOString();
+    const { adminUserId, ...articleData } = args;
+    const articleId = await ctx.db.insert("articles", {
+      language: articleData.language || "en",
+      title: articleData.title,
+      excerpt: articleData.excerpt,
+      content: articleData.content,
+      author: articleData.author,
+      publishedAt: articleData.publishedAt,
+      readTime: articleData.readTime,
+      category: articleData.category,
+      tags: articleData.tags || [],
+      region: articleData.region,
+      riskProfile: articleData.riskProfile,
+      financialLevel: articleData.financialLevel,
+      plan: articleData.plan || "free",
+      createdAt: now,
+      updatedAt: now,
+    });
+    
+    safeLog("Admin created article", {
+      adminUserId: args.adminUserId,
+      articleId,
+      title: args.title,
+    });
+    
+    return { success: true, articleId };
+  },
+});
+
+/**
+ * Admin: Update article
+ */
+export const updateArticle = mutation({
+  args: {
+    adminUserId: v.string(),
+    articleId: v.id("articles"),
+    language: v.optional(v.union(v.literal("en"), v.literal("ar"))),
+    title: v.optional(v.string()),
+    excerpt: v.optional(v.string()),
+    content: v.optional(v.string()),
+    author: v.optional(v.string()),
+    publishedAt: v.optional(v.string()),
+    readTime: v.optional(v.number()),
+    category: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
+    region: v.optional(v.string()),
+    riskProfile: v.optional(v.union(v.literal("conservative"), v.literal("moderate"), v.literal("aggressive"))),
+    financialLevel: v.optional(v.union(v.literal("beginner"), v.literal("intermediate"), v.literal("advanced"))),
+    plan: v.optional(v.union(v.literal("free"), v.literal("pro"))),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin
+    const MAIN_ADMIN_USER_ID = "user_38vftq2ScgNF9AEmYVnswcUuVpH";
+    const isMainAdmin = args.adminUserId === MAIN_ADMIN_USER_ID;
+    
+    if (!isMainAdmin) {
+      const admin = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", args.adminUserId))
+        .first();
+      
+      if (!admin || admin.isAdmin !== true) {
+        throw new Error("Unauthorized: Admin access required");
+      }
+    }
+
+    const { adminUserId, articleId, ...updates } = args;
+    const article = await ctx.db.get(articleId);
+    if (!article) {
+      throw new Error("Article not found");
+    }
+    
+    await ctx.db.patch(articleId, {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    });
+    
+    safeLog("Admin updated article", {
+      adminUserId: args.adminUserId,
+      articleId,
+    });
+    
+    return { success: true };
+  },
+});
+
+/**
+ * Admin: Delete article
+ */
+export const deleteArticle = mutation({
+  args: {
+    adminUserId: v.string(),
+    articleId: v.id("articles"),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin
+    const MAIN_ADMIN_USER_ID = "user_38vftq2ScgNF9AEmYVnswcUuVpH";
+    const isMainAdmin = args.adminUserId === MAIN_ADMIN_USER_ID;
+    
+    if (!isMainAdmin) {
+      const admin = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", args.adminUserId))
+        .first();
+      
+      if (!admin || admin.isAdmin !== true) {
+        throw new Error("Unauthorized: Admin access required");
+      }
+    }
+
+    await ctx.db.delete(args.articleId);
+    
+    safeLog("Admin deleted article", {
+      adminUserId: args.adminUserId,
+      articleId: args.articleId,
+    });
+    
+    return { success: true };
+  },
+});
