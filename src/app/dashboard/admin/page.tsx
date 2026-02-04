@@ -659,6 +659,7 @@ export default function AdminPage() {
                         {t("admin.cancel") || "Cancel"}
                       </Button>
                       <Button
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white"
                         onClick={async () => {
                           if (!user?.id) return;
                           if (!articleForm.title || !articleForm.excerpt || !articleForm.content || !articleForm.author) {
@@ -741,48 +742,76 @@ export default function AdminPage() {
                 {t("admin.noArticles") || "No articles found. Create your first article!"}
               </p>
             ) : (
-              <div className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {allArticles.map((article: any) => (
-                  <div
+                  <Card
                     key={article._id}
-                    className="border border-gray-200 dark:border-slate-700 rounded-lg p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors"
+                    className="bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-slate-800 shadow-lg hover:shadow-xl transition-all duration-200"
                   >
-                    <div className={`flex flex-col sm:flex-row ${isRTL ? "sm:flex-row-reverse" : ""} items-start sm:items-center justify-between gap-3 sm:gap-4`}>
-                      <div className="flex-1 min-w-0 w-full sm:w-auto">
-                        <div className={`flex flex-wrap ${isRTL ? "flex-row-reverse" : ""} items-center gap-2 mb-2`}>
-                          <span className="font-medium text-sm sm:text-base text-gray-900 dark:text-gray-100 break-words min-w-0">{article.title}</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {article.category && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 shrink-0">
-                                {article.category}
-                              </span>
-                            )}
-                            {article.plan === "pro" && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-600 text-white shrink-0">
-                                Pro
-                              </span>
-                            )}
-                            {article.language && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 shrink-0">
-                                {article.language.toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-1">{article.excerpt}</p>
-                        <div className="flex flex-wrap gap-2 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-                          <span>{t("admin.article.author") || "Author"}: {article.author}</span>
-                          <span>•</span>
-                          <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
-                          {article.tags && article.tags.length > 0 && (
-                            <>
-                              <span>•</span>
-                              <span>{article.tags.join(", ")}</span>
-                            </>
+                    <CardContent className="p-4 sm:p-6">
+                      {/* Header with badges */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2 flex-wrap flex-1">
+                          {article.category && (
+                            <span className="px-2 py-1 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded">
+                              {article.category}
+                            </span>
+                          )}
+                          {article.plan === "pro" && (
+                            <span className="px-2 py-1 text-xs font-medium bg-emerald-600 text-white rounded">
+                              {t("admin.article.pro") || "Pro"}
+                            </span>
+                          )}
+                          {article.language && (
+                            <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded">
+                              {article.language.toUpperCase()}
+                            </span>
                           )}
                         </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">
+                          {article.readTime} {t("admin.article.readTimeShort") || "min"}
+                        </span>
                       </div>
-                      <div className={`flex flex-col sm:flex-row ${isRTL ? "sm:flex-row-reverse" : ""} gap-2 w-full sm:w-auto`}>
+
+                      {/* Title */}
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
+                        {article.title}
+                      </h3>
+
+                      {/* Excerpt */}
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                        {article.excerpt}
+                      </p>
+
+                      {/* Meta info */}
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4 pb-4 border-b border-gray-200 dark:border-slate-700">
+                        <span className="truncate">{article.author}</span>
+                        <span className="ml-2 whitespace-nowrap">
+                          {new Date(article.publishedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      {/* Tags */}
+                      {article.tags && article.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-4">
+                          {article.tags.slice(0, 3).map((tag: string, idx: number) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 text-[10px] font-medium bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 rounded"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {article.tags.length > 3 && (
+                            <span className="px-2 py-0.5 text-[10px] font-medium text-gray-500 dark:text-gray-500">
+                              +{article.tags.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className={`flex ${isRTL ? "flex-row-reverse" : ""} gap-2`}>
                         <Button
                           size="sm"
                           variant="outline"
@@ -805,11 +834,10 @@ export default function AdminPage() {
                             });
                             setShowArticleDialog(true);
                           }}
-                          className="text-xs w-full sm:w-auto"
+                          className="flex-1 text-xs border-gray-300 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-300 dark:hover:border-emerald-700"
                         >
-                          <Edit size={14} className="w-3.5 h-3.5 sm:mr-1" />
-                          <span className="hidden sm:inline">{t("admin.edit") || "Edit"}</span>
-                          <span className="sm:hidden">{t("admin.edit") || "Edit"}</span>
+                          <Edit size={14} className={`w-3.5 h-3.5 ${isRTL ? "ml-1" : "mr-1"}`} />
+                          {t("admin.edit") || "Edit"}
                         </Button>
                         <Button
                           size="sm"
@@ -832,15 +860,13 @@ export default function AdminPage() {
                             }
                           }}
                           disabled={isUpdating}
-                          className="text-xs w-full sm:w-auto"
+                          className="text-xs"
                         >
-                          <Trash2 size={14} className="w-3.5 h-3.5 sm:mr-1" />
-                          <span className="hidden sm:inline">{t("admin.delete") || "Delete"}</span>
-                          <span className="sm:hidden">{t("admin.delete") || "Delete"}</span>
+                          <Trash2 size={14} className="w-3.5 h-3.5" />
                         </Button>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}
