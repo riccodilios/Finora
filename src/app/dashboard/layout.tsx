@@ -9,6 +9,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/LanguageProvider";
+import { useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +35,28 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { isRTL, t } = useLanguage();
+
+  // Redirect to sign-in if not authenticated
+  useEffect(() => {
+    if (isLoaded && !user) {
+      const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(pathname)}`;
+      router.push(signInUrl);
+    }
+  }, [isLoaded, user, pathname, router]);
+
+  // Show loading while checking auth
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
   
   const subscription = useQuery(
     api.functions.getSubscription,
