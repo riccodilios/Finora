@@ -514,7 +514,15 @@ export default function DashboardPage() {
                     monthlyIncome
                       ? incomeFormatted.isLoading
                         ? "—"
-                        : `${formatNumber(incomeFormatted.convertedAmount / 1000, language, { maximumFractionDigits: 1, minimumFractionDigits: 1 })}${t("charts.thousandSuffix")}`
+                        : incomeFormatted.convertedAmount < 1000
+                          ? formatNumber(incomeFormatted.convertedAmount, language, {
+                              maximumFractionDigits: 0,
+                            })
+                          : `${formatNumber(
+                              incomeFormatted.convertedAmount / 1000,
+                              language,
+                              { maximumFractionDigits: 1, minimumFractionDigits: 1 }
+                            )}${t("charts.thousandSuffix")}`
                       : "—"
                   }
                   subtitle={currency}
@@ -538,7 +546,15 @@ export default function DashboardPage() {
                     monthlyExpenses
                       ? expensesFormatted.isLoading
                         ? "—"
-                        : `${formatNumber(expensesFormatted.convertedAmount / 1000, language, { maximumFractionDigits: 1, minimumFractionDigits: 1 })}${t("charts.thousandSuffix")}`
+                        : expensesFormatted.convertedAmount < 1000
+                          ? formatNumber(expensesFormatted.convertedAmount, language, {
+                              maximumFractionDigits: 0,
+                            })
+                          : `${formatNumber(
+                              expensesFormatted.convertedAmount / 1000,
+                              language,
+                              { maximumFractionDigits: 1, minimumFractionDigits: 1 }
+                            )}${t("charts.thousandSuffix")}`
                       : "—"
                   }
                   subtitle={currency}
@@ -562,7 +578,15 @@ export default function DashboardPage() {
                     netWorth
                       ? netWorthFormatted.isLoading
                         ? "—"
-                        : `${formatNumber(netWorthFormatted.convertedAmount / 1000, language, { maximumFractionDigits: 1, minimumFractionDigits: 1 })}${t("charts.thousandSuffix")}`
+                        : netWorthFormatted.convertedAmount < 1000
+                          ? formatNumber(netWorthFormatted.convertedAmount, language, {
+                              maximumFractionDigits: 0,
+                            })
+                          : `${formatNumber(
+                              netWorthFormatted.convertedAmount / 1000,
+                              language,
+                              { maximumFractionDigits: 1, minimumFractionDigits: 1 }
+                            )}${t("charts.thousandSuffix")}`
                       : "—"
                   }
                   subtitle={currency}

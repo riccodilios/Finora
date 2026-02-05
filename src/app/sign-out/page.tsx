@@ -2,12 +2,18 @@
 
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function SignOutPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure client-side only rendering to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -15,13 +21,23 @@ export default function SignOutPage() {
     }
   }, [isLoaded, user, router]);
 
-  if (!isLoaded) {
+  // Show loading state until mounted and user data is loaded
+  if (!isMounted || !isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
     );
   }
+
+  // Don't render user-specific content if user doesn't exist (will redirect)
+  if (!user) {
+    return null;
+  }
+
+  // Safely access user properties with null checks
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress || "Unknown";
+  const userId = user?.id ? user.id.substring(0, 12) + "..." : "Unknown";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -38,8 +54,8 @@ export default function SignOutPage() {
           </p>
           
           <div className="bg-gray-50 p-4 rounded-lg mb-6">
-            <p className="font-medium text-gray-900">{user?.emailAddresses[0]?.emailAddress}</p>
-            <p className="text-sm text-gray-500 mt-1">User ID: {user?.id.substring(0, 12)}...</p>
+            <p className="font-medium text-gray-900">{userEmail}</p>
+            <p className="text-sm text-gray-500 mt-1">User ID: {userId}</p>
           </div>
           
           <p className="text-gray-600 mb-8">

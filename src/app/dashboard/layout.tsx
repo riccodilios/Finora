@@ -36,6 +36,32 @@ export default function DashboardLayout({
   const router = useRouter();
   const { isRTL, t } = useLanguage();
 
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  const subscription = useQuery(
+    api.functions.getSubscription,
+    isLoaded && user?.id ? { clerkUserId: user.id } : "skip"
+  );
+  const currentUser = useQuery(
+    api.functions.getUser,
+    isLoaded && user?.id ? { clerkUserId: user.id } : "skip"
+  );
+
+  const plan = subscription?.plan || currentUser?.plan || "free";
+  const isPro = plan === "pro";
+
+  // Main admin user ID (always has access)
+  const MAIN_ADMIN_USER_ID = "user_38vftq2ScgNF9AEmYVnswcUuVpH";
+  const isMainAdmin = user?.id === MAIN_ADMIN_USER_ID;
+
+  // Check admin status
+  const isAdminQuery = useQuery(
+    api.admin.isAdmin,
+    isLoaded && user?.id ? { clerkUserId: user.id } : "skip"
+  );
+
+  // Combine main admin check with query result
+  const isAdmin = isMainAdmin || isAdminQuery === true;
+
   // Redirect to sign-in if not authenticated
   useEffect(() => {
     if (isLoaded && !user) {
@@ -57,31 +83,6 @@ export default function DashboardLayout({
   if (!user) {
     return null;
   }
-  
-  const subscription = useQuery(
-    api.functions.getSubscription,
-    isLoaded && user?.id ? { clerkUserId: user.id } : "skip"
-  );
-  const currentUser = useQuery(
-    api.functions.getUser,
-    isLoaded && user?.id ? { clerkUserId: user.id } : "skip"
-  );
-  
-  const plan = subscription?.plan || currentUser?.plan || "free";
-  const isPro = plan === "pro";
-  
-  // Main admin user ID (always has access)
-  const MAIN_ADMIN_USER_ID = "user_38vftq2ScgNF9AEmYVnswcUuVpH";
-  const isMainAdmin = user?.id === MAIN_ADMIN_USER_ID;
-
-  // Check admin status
-  const isAdminQuery = useQuery(
-    api.admin.isAdmin,
-    isLoaded && user?.id ? { clerkUserId: user.id } : "skip"
-  );
-  
-  // Combine main admin check with query result
-  const isAdmin = isMainAdmin || isAdminQuery === true;
 
   const handleLogoClick = () => {
     // Use router.push instead of window.location.reload to avoid hydration issues
@@ -154,14 +155,14 @@ export default function DashboardLayout({
                   </>
                 )}
                 <DropdownMenuSeparator className="bg-gray-800" />
-                <DropdownMenuItem asChild className="text-gray-400 hover:text-white hover:bg-white/5">
-                  <SignOutButton>
+                <SignOutButton>
+                  <DropdownMenuItem asChild className="text-gray-400 hover:text-white hover:bg-white/5">
                     <button className={`flex items-center gap-3 w-full ${isRTL ? "flex-row-reverse text-right" : "text-left"}`}>
                       <LogOut size={20} className="w-5 h-5" />
                       <span>{t("nav.signOut")}</span>
                     </button>
-                  </SignOutButton>
-                </DropdownMenuItem>
+                  </DropdownMenuItem>
+                </SignOutButton>
               </DropdownMenuContent>
             </DropdownMenu>
 

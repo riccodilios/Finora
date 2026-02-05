@@ -3,25 +3,26 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 
 export default function HomePage() {
   const { user, isLoaded } = useUser();
-  const isLoggedIn = !!user;
+  const router = useRouter();
 
-  // Redirect logged-in users to dashboard
-  if (isLoaded && isLoggedIn) {
+  // Automatically redirect logged-in users to the dashboard
+  useEffect(() => {
+    if (isLoaded && user) {
+      router.replace("/dashboard");
+    }
+  }, [isLoaded, user, router]);
+
+  // While auth state is loading or redirecting, show a minimal loader
+  if (!isLoaded || (isLoaded && user)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">Redirecting to dashboard...</p>
-          <Link 
-            href="/dashboard"
-            className="inline-block px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-colors text-sm font-medium"
-          >
-            Go to Dashboard
-          </Link>
-        </div>
+        <div className="w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

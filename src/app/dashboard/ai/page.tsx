@@ -204,18 +204,23 @@ export default function AIPage() {
   };
 
   return (
-    <div className={`space-y-4 sm:space-y-6 px-4 sm:px-0 ${isRTL ? "text-right" : ""}`} dir={isRTL ? "rtl" : "ltr"}>
-      <div className={`flex flex-col sm:flex-row ${isRTL ? "sm:flex-row-reverse" : ""} justify-between items-start gap-3 sm:gap-0`}>
-        <div className={`${isRTL ? "text-right" : "text-left"} w-full sm:w-auto`}>
-          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{t("ai.title")}</h1>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{t("ai.subtitle")}</p>
-        </div>
-        <div className={isRTL ? "text-left" : "text-right"}>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            {t("ai.chatsUsed")} <span className="font-semibold">{chatsUsed}/{chatsLimit}</span>
+    <div className={`px-4 sm:px-0 ${isRTL ? "text-right" : ""}`} dir={isRTL ? "rtl" : "ltr"}>
+      <div className="max-w-md md:max-w-4xl mx-auto w-full space-y-4 sm:space-y-6">
+        <div className={`flex flex-col sm:flex-row ${isRTL ? "sm:flex-row-reverse" : ""} justify-between items-start gap-3 sm:gap-0`}>
+          <div className={`${isRTL ? "text-right" : "text-left"} w-full sm:w-auto`}>
+            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              {t("ai.title")}
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              {t("ai.subtitle")}
+            </p>
+          </div>
+          <div className={isRTL ? "text-left" : "text-right"}>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {t("ai.chatsUsed")} <span className="font-semibold">{chatsUsed}/{chatsLimit}</span>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Limit reached CTA */}
       {isLimitReached && (
@@ -256,9 +261,9 @@ export default function AIPage() {
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-6 items-stretch">
+      <div className="flex flex-col lg:flex-row gap-6 justify-center items-center lg:items-stretch max-w-md lg:max-w-5xl mx-auto w-full">
         {/* Chat history sidebar */}
-        <aside className="w-full lg:w-64 bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm p-5 space-y-4">
+        <aside className="w-full max-w-md lg:w-64 lg:max-w-none mx-auto lg:mx-0 bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm p-5 space-y-4">
           <div className={`flex ${isRTL ? "flex-row-reverse" : ""} items-center justify-between gap-2`}>
             <div className={isRTL ? "text-right" : "text-left"}>
               <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-0.5">
@@ -315,7 +320,7 @@ export default function AIPage() {
         </aside>
 
         {/* Chat container */}
-        <div className="flex-1 bg-white dark:bg-slate-950 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 flex flex-col h-[calc(100vh-200px)] min-h-[600px] transition-colors">
+        <div className="flex-1 w-full max-w-md lg:max-w-none mx-auto lg:mx-0 bg-white dark:bg-slate-950 rounded-xl shadow-sm border border-gray-200 dark:border-slate-800 flex flex-col h-[calc(100vh-200px)] min-h-[480px] transition-colors">
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {conversation === undefined ? (
@@ -400,7 +405,7 @@ export default function AIPage() {
                 onKeyPress={handleKeyPress}
                 placeholder={isLimitReached ? t("ai.placeholderLimit") : t("ai.placeholder")}
                 disabled={isSending || isLimitReached}
-                className="flex-1 px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-slate-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed resize-none text-sm"
+                className="flex-1 px-4 py-3 border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-slate-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed resize-none text-base sm:text-sm"
                 rows={2}
               />
               <Button
@@ -421,11 +426,12 @@ export default function AIPage() {
                 )}
               </Button>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
               {t("ai.financialOnly")}
             </p>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
