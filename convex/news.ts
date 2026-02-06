@@ -10,9 +10,9 @@ const REGION_MAP: Record<string, { country?: string }> = {
   global: {},
 };
 
-// NewsAPI configuration
-const NEWS_API_KEY = process.env.NEWS_API_KEY || "";
-const NEWS_API_BASE = "https://newsapi.org/v2";
+// NewsData.io configuration (primary)
+const NEWS_DATA_IO_API_KEY = process.env.NEWS_DATA_IO_API_KEY || "";
+const NEWS_DATA_IO_BASE = "https://newsdata.io/api/1";
 
 // GNews configuration (fallback)
 const GNEWS_API_KEY = process.env.GNEWS_API_KEY || "";
@@ -40,36 +40,34 @@ async function fetchAndNormalizeNews(region: Region, language: Language): Promis
   let articles: NormalizedArticle[] = [];
   let usedFallback = false;
 
-  // Try NewsAPI first if configured
-  if (NEWS_API_KEY) {
+  // Try NewsData.io first if configured
+  if (NEWS_DATA_IO_API_KEY) {
     try {
       const queryParams = new URLSearchParams({
-        q: "(economy OR markets OR finance OR financial) AND (NOT investment advice)",
+        apikey: NEWS_DATA_IO_API_KEY,
+        q: "economy OR markets OR finance OR financial",
         category: "business",
-        pageSize: "20",
-        sortBy: "publishedAt",
         language,
+        size: "3",
+        removeduplicate: "1",
       });
 
       if (regionConfig.country) {
         queryParams.append("country", regionConfig.country);
       }
 
-      const apiUrl = `${NEWS_API_BASE}/top-headlines?${queryParams.toString()}`;
-      const response = await fetch(apiUrl, {
-        headers: {
-          "X-API-Key": NEWS_API_KEY,
-        },
-      });
+      const apiUrl = `${NEWS_DATA_IO_BASE}/latest?${queryParams.toString()}`;
+      const response = await fetch(apiUrl);
 
       if (response.ok) {
         const apiData = await response.json();
-        articles = (apiData.articles || [])
+        const results = apiData.results || apiData.articles || [];
+        articles = results
           .map(
             (article: any): NormalizedArticle | null => {
               const url: string | undefined =
-                article.url && typeof article.url === "string" && article.url.startsWith("http")
-                  ? article.url
+                article.link && typeof article.link === "string" && article.link.startsWith("http")
+                  ? article.link
                   : undefined;
 
               if (!article.title || article.title === "Untitled" || !url) {
@@ -78,24 +76,25 @@ async function fetchAndNormalizeNews(region: Region, language: Language): Promis
 
               return {
                 title: article.title,
-                source: article.source?.name || "Unknown Source",
+                source: article.source_id || "Unknown Source",
                 // IMPORTANT: preserve original publishedAt from API – never overwrite later
-                publishedAt: article.publishedAt || new Date().toISOString(),
+                publishedAt: article.pubDate || new Date().toISOString(),
                 description:
                   article.description ||
                   (article.content ? String(article.content).substring(0, 200) : "No description available."),
                 url,
-                urlToImage: article.urlToImage || null,
+                urlToImage: article.image_url || null,
               };
             }
           )
           .filter((article: NormalizedArticle | null): article is NormalizedArticle => article !== null);
       } else {
-        console.warn("NewsAPI failed in Convex news.refreshNewsForRegion, using GNews fallback");
+        const errBody = await response.text().catch(() => "");
+        console.warn(`NewsData.io failed (${response.status}) in Convex news.refreshNewsForRegion:`, errBody.slice(0, 200));
         usedFallback = true;
       }
     } catch (error) {
-      console.warn("NewsAPI error in Convex news.refreshNewsForRegion, using GNews fallback:", error);
+      console.warn("NewsData.io error in Convex news.refreshNewsForRegion, using GNews fallback:", String(error));
       usedFallback = true;
     }
   } else {
@@ -103,7 +102,7 @@ async function fetchAndNormalizeNews(region: Region, language: Language): Promis
   }
 
   // Fallback to GNews if needed
-  if ((articles.length === 0 && usedFallback) || (!NEWS_API_KEY && GNEWS_API_KEY)) {
+  if ((articles.length === 0 && usedFallback) || (!NEWS_DATA_IO_API_KEY && GNEWS_API_KEY)) {
     try {
       const gnewsCountryMap: Record<string, string> = {
         ksa: "sa",
@@ -381,7 +380,7 @@ export const setNewsMeta = mutation({
  * Action: Refresh news for all regions and both languages.
  *
  * Behaviour:
- * - Fetches fresh articles from NewsAPI / GNews
+ * - Fetches fresh articles from NewsData.io / GNews
  * - Compares by URL against existing records
  * - Inserts only NEW articles into newsArticles
  * - NEVER updates existing article records or their publishedAt timestamps
@@ -475,10 +474,18 @@ export const getLatestNewsByRegion = query({
   handler: async (ctx, args) => {
     const { region, language } = args;
 
+    // Only show articles from the last 7 days to ensure freshness
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoIso = sevenDaysAgo.toISOString();
+
     // Fetch latest articles for this region/language ordered by publishedAt desc
+    // Filter to only show articles published in the last 7 days
     const articles = await ctx.db
       .query("newsArticles")
-      .withIndex("by_region_language_publishedAt", (q) => q.eq("region", region).eq("language", language))
+      .withIndex("by_region_language_publishedAt", (q) => 
+        q.eq("region", region).eq("language", language).gte("publishedAt", sevenDaysAgoIso)
+      )
       .order("desc")
       .take(50);
 

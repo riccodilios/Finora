@@ -6,7 +6,7 @@
 
 **Features:**
 - ✅ Server-side fetching only (no client-side API keys)
-- ✅ NewsAPI with GNews fallback
+- ✅ NewsData.io with GNews fallback
 - ✅ Regions: Saudi Arabia, UAE, United States, Global
 - ✅ Categories: economy, markets, finance
 - ✅ 5-minute cache to avoid rate limits
@@ -25,7 +25,7 @@
 
 **Environment Variables:**
 ```bash
-NEWS_API_KEY=your_newsapi_key
+NEWS_DATA_IO_API_KEY=your_newsdata_io_key  # Primary news source
 GNEWS_API_KEY=your_gnews_key  # Optional fallback
 ```
 
@@ -89,7 +89,7 @@ GNEWS_API_KEY=your_gnews_key  # Optional fallback
 ### News Feed
 The news feed automatically appears on the dashboard and:
 - Detects region from user preferences (ksa/uae/us)
-- Fetches news from NewsAPI (with GNews fallback)
+- Fetches news from NewsData.io (with GNews fallback)
 - Shows 5 latest articles
 - Includes disclaimer banner
 - Opens articles in new tab
@@ -111,6 +111,6 @@ Access at `/dashboard/admin` (only visible to admins):
 ## 📝 Notes
 
 - News feed uses cached responses (5 minutes)
-- GNews fallback activates if NewsAPI fails
+- GNews fallback activates if NewsData.io fails
 - Admin panel requires admin status (checked via Convex)
 - All admin operations are logged in audit logs

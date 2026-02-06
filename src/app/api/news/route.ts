@@ -9,7 +9,7 @@ interface CacheEntry {
 const cache = new Map<string, CacheEntry>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-// Region mapping for NewsAPI
+// Region mapping for NewsData.io / GNews
 const REGION_MAP: Record<string, { country?: string }> = {
   ksa: { country: 'sa' },
   uae: { country: 'ae' },
@@ -17,9 +17,9 @@ const REGION_MAP: Record<string, { country?: string }> = {
   global: {},
 };
 
-// NewsAPI configuration
-const NEWS_API_KEY = process.env.NEWS_API_KEY || '';
-const NEWS_API_BASE = 'https://newsapi.org/v2';
+// NewsData.io configuration (primary)
+const NEWS_DATA_IO_API_KEY = process.env.NEWS_DATA_IO_API_KEY || '';
+const NEWS_DATA_IO_BASE = 'https://newsdata.io/api/1';
 
 // GNews API configuration (fallback)
 const GNEWS_API_KEY = process.env.GNEWS_API_KEY || '';
@@ -28,7 +28,7 @@ const GNEWS_API_BASE = 'https://gnews.io/api/v4';
 /**
  * GET /api/news?region=ksa|uae|us|global
  * 
- * Fetches financial news articles from NewsAPI
+ * Fetches financial news articles from NewsData.io
  * - Caches responses for 5 minutes
  * - Returns metadata only (no full content)
  * - Handles region mapping server-side
@@ -69,8 +69,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if API key is configured
-    if (!NEWS_API_KEY) {
-      console.warn('NEWS_API_KEY not configured. Using mock data.');
+    if (!NEWS_DATA_IO_API_KEY) {
+      console.warn('NEWS_DATA_IO_API_KEY not configured. Using mock data.');
       const mockData = getMockNewsData(region);
       cache.set(cacheKey, { data: mockData, timestamp: Date.now() });
       return NextResponse.json(mockData, {
@@ -82,59 +82,58 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Try NewsAPI first, then fallback to GNews
+    // Try NewsData.io first, then fallback to GNews
     let articles: any[] = [];
     let usedFallback = false;
 
-    // Build NewsAPI query with proper categories
+    // Build NewsData.io query with proper categories
     const regionConfig = REGION_MAP[region];
     const queryParams = new URLSearchParams({
-      q: '(economy OR markets OR finance OR financial) AND (NOT investment advice)',
+      apikey: NEWS_DATA_IO_API_KEY,
+      q: 'economy OR markets OR finance OR financial',
       category: 'business',
-      pageSize: '20',
-      sortBy: 'publishedAt',
       language,
+      size: '3',
+      removeduplicate: '1',
     });
 
     if (regionConfig.country) {
       queryParams.append('country', regionConfig.country);
     }
 
-    // Try NewsAPI first
-    if (NEWS_API_KEY) {
+    // Try NewsData.io first
+    if (NEWS_DATA_IO_API_KEY) {
       try {
-        const apiUrl = `${NEWS_API_BASE}/top-headlines?${queryParams.toString()}`;
+        const apiUrl = `${NEWS_DATA_IO_BASE}/latest?${queryParams.toString()}`;
         const response = await fetch(apiUrl, {
-          headers: {
-            'X-API-Key': NEWS_API_KEY,
-          },
           next: { revalidate: 300 },
         });
 
         if (response.ok) {
           const apiData = await response.json();
-          articles = (apiData.articles || []).map((article: any) => ({
+          const results = apiData.results || [];
+          articles = results.map((article: any) => ({
             title: article.title || 'Untitled',
-            source: article.source?.name || 'Unknown Source',
-            publishedAt: article.publishedAt || new Date().toISOString(),
+            source: article.source_id || 'Unknown Source',
+            publishedAt: article.pubDate || new Date().toISOString(),
             description: article.description || article.content?.substring(0, 200) || 'No description available.',
-            url: article.url || '#',
-            urlToImage: article.urlToImage || null,
+            url: article.link && article.link.startsWith('http') ? article.link : '#',
+            urlToImage: article.image_url || null,
           })).filter((article: any) => article.title !== 'Untitled' && article.url !== '#');
         } else {
-          console.warn('NewsAPI failed, trying GNews fallback');
+          console.warn('NewsData.io failed, trying GNews fallback');
           usedFallback = true;
         }
       } catch (error) {
-        console.warn('NewsAPI error, trying GNews fallback:', error);
+        console.warn('NewsData.io error, trying GNews fallback:', error);
         usedFallback = true;
       }
     } else {
       usedFallback = true;
     }
 
-    // Fallback to GNews if NewsAPI failed or not configured
-    if (articles.length === 0 && (usedFallback || !NEWS_API_KEY)) {
+    // Fallback to GNews if NewsData.io failed or not configured
+    if (articles.length === 0 && (usedFallback || !NEWS_DATA_IO_API_KEY)) {
       if (GNEWS_API_KEY) {
         try {
           // Map region to GNews country codes
@@ -187,7 +186,7 @@ export async function GET(request: NextRequest) {
 
     // If both APIs failed, use mock data
     if (articles.length === 0) {
-      console.warn('Both NewsAPI and GNews failed, using mock data');
+      console.warn('Both NewsData.io and GNews failed, using mock data');
       const mockData = getMockNewsData(region);
       cache.set(cacheKey, { data: mockData, timestamp: Date.now() });
       return NextResponse.json(mockData, {

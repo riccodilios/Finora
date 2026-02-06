@@ -45,7 +45,7 @@
   - Run: `npx convex env set OPENAI_API_KEY "your-key" --prod`
 
 - [ ] **News API Key** (optional, for news articles)
-  - Set `NEWS_API_KEY` in production environment
+  - Set `NEWS_DATA_IO_API_KEY` in production environment (Vercel + Convex)
   - Or remove news feature if not needed
 
 - [ ] **App URL**
