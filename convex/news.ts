@@ -48,7 +48,7 @@ async function fetchAndNormalizeNews(region: Region, language: Language): Promis
         q: "economy OR markets OR finance OR financial",
         category: "business",
         language,
-        size: "3",
+        size: "5",
         removeduplicate: "1",
       });
 

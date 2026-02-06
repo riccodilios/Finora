@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
       q: 'economy OR markets OR finance OR financial',
       category: 'business',
       language,
-      size: '3',
+      size: '5',
       removeduplicate: '1',
     });
 
