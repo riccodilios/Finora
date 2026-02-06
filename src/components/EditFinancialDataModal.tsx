@@ -329,8 +329,8 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                 <button
                   onClick={() =>
                     setIncomeSources([
-                      ...incomeSources,
                       { id: generateId(), name: "", amount: 0, type: "salary", isRecurring: true },
+                      ...incomeSources,
                     ])
                   }
                   className="flex items-center gap-2 px-4 py-2 transition-all duration-200 ease-in-out text-sm font-medium"
@@ -550,8 +550,8 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                 <button
                   onClick={() =>
                     setExpenses([
-                      ...expenses,
                       { id: generateId(), name: "", amount: 0, category: "other", type: "variable", isRecurring: true },
+                      ...expenses,
                     ])
                   }
                   className="flex items-center gap-2 px-4 py-2 transition-all duration-200 ease-in-out text-sm font-medium"
@@ -856,8 +856,8 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                 <button
                   onClick={() =>
                     setDebts([
-                      ...debts,
                       { id: generateId(), name: "", principal: 0, monthlyPayment: 0, type: "other" },
+                      ...debts,
                     ])
                   }
                   className="flex items-center gap-2 px-4 py-2 transition-all duration-200 ease-in-out text-sm font-medium"
@@ -1142,8 +1142,8 @@ export function EditFinancialDataModal({ isOpen, onClose, clerkUserId }: EditFin
                 <button
                   onClick={() =>
                     setInvestments([
-                      ...investments,
                       { id: generateId(), name: "", value: 0, type: "stocks" },
+                      ...investments,
                     ])
                   }
                   className="flex items-center gap-2 px-4 py-2 transition-all duration-200 ease-in-out text-sm font-medium"
