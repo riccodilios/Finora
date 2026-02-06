@@ -26,7 +26,7 @@ interface NormalizedArticle {
   source: string;
   publishedAt: string;
   description: string;
-  url?: string;
+  url: string;
   urlToImage?: string | null;
 }
 
@@ -65,17 +65,31 @@ async function fetchAndNormalizeNews(region: Region, language: Language): Promis
       if (response.ok) {
         const apiData = await response.json();
         articles = (apiData.articles || [])
-          .map((article: any): NormalizedArticle => ({
-            title: article.title || "Untitled",
-            source: article.source?.name || "Unknown Source",
-            publishedAt: article.publishedAt || new Date().toISOString(),
-            description:
-              article.description ||
-              (article.content ? String(article.content).substring(0, 200) : "No description available."),
-            url: article.url && article.url.startsWith("http") ? article.url : undefined,
-            urlToImage: article.urlToImage || null,
-          }))
-          .filter((article: NormalizedArticle) => !!article.title && article.title !== "Untitled" && !!article.url);
+          .map(
+            (article: any): NormalizedArticle | null => {
+              const url: string | undefined =
+                article.url && typeof article.url === "string" && article.url.startsWith("http")
+                  ? article.url
+                  : undefined;
+
+              if (!article.title || article.title === "Untitled" || !url) {
+                return null;
+              }
+
+              return {
+                title: article.title,
+                source: article.source?.name || "Unknown Source",
+                // IMPORTANT: preserve original publishedAt from API – never overwrite later
+                publishedAt: article.publishedAt || new Date().toISOString(),
+                description:
+                  article.description ||
+                  (article.content ? String(article.content).substring(0, 200) : "No description available."),
+                url,
+                urlToImage: article.urlToImage || null,
+              };
+            }
+          )
+          .filter((article: NormalizedArticle | null): article is NormalizedArticle => article !== null);
       } else {
         console.warn("NewsAPI failed in Convex news.refreshNewsForRegion, using GNews fallback");
         usedFallback = true;
@@ -117,20 +131,31 @@ async function fetchAndNormalizeNews(region: Region, language: Language): Promis
       if (gnewsResponse.ok) {
         const gnewsData = await gnewsResponse.json();
         articles = (gnewsData.articles || [])
-          .map((article: any): NormalizedArticle => ({
-            title: article.title || "Untitled",
-            source: article.source?.name || "Unknown Source",
-            publishedAt: article.publishedAt || new Date().toISOString(),
-            description:
-              article.description ||
-              (article.content ? String(article.content).substring(0, 200) : "No description available."),
-            url: article.url && article.url.startsWith("http") ? article.url : undefined,
-            urlToImage: article.image || null,
-          }))
-          .filter(
-            (article: NormalizedArticle) =>
-              !!article.title && article.title !== "Untitled" && !!article.url && article.title.trim() !== ""
-          );
+          .map(
+            (article: any): NormalizedArticle | null => {
+              const url: string | undefined =
+                article.url && typeof article.url === "string" && article.url.startsWith("http")
+                  ? article.url
+                  : undefined;
+
+              if (!article.title || article.title === "Untitled" || !url || !article.title.trim()) {
+                return null;
+              }
+
+              return {
+                title: article.title,
+                source: article.source?.name || "Unknown Source",
+                // Preserve original publishedAt from API
+                publishedAt: article.publishedAt || new Date().toISOString(),
+                description:
+                  article.description ||
+                  (article.content ? String(article.content).substring(0, 200) : "No description available."),
+                url,
+                urlToImage: article.image || null,
+              };
+            }
+          )
+          .filter((article: NormalizedArticle | null): article is NormalizedArticle => article !== null);
       }
     } catch (error) {
       console.error("GNews fallback error in Convex news.refreshNewsForRegion:", error);
@@ -261,47 +286,186 @@ export const saveNewsSnapshot = mutation({
 });
 
 /**
- * Action: Refresh news for all regions and both languages.
- * Uses fetch to call NewsAPI / GNews, then persists via the mutation above.
- * This is what the daily cron should call.
+ * Mutation: Insert a single news article if it does not already exist (dedupe by URL).
+ * - NEVER updates existing records
+ * - Uses original publishedAt from the API
  */
-export const refreshNewsForAllRegions = action({
-  args: {},
-  handler: async (ctx) => {
-    const regions: Region[] = ["ksa", "uae", "us", "global"];
-    const languages: Language[] = ["en", "ar"];
+export const insertNewsArticleIfNew = mutation({
+  args: {
+    region: v.union(v.literal("ksa"), v.literal("uae"), v.literal("us"), v.literal("global")),
+    language: v.union(v.literal("en"), v.literal("ar")),
+    fetchedAt: v.string(),
+    article: v.object({
+      title: v.string(),
+      source: v.string(),
+      publishedAt: v.string(),
+      description: v.string(),
+      url: v.string(),
+      urlToImage: v.optional(v.union(v.string(), v.null())),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const { region, language, fetchedAt, article } = args;
 
-    const results = [];
-    for (const region of regions) {
-      for (const language of languages) {
-        const articles = await fetchAndNormalizeNews(region, language);
-        const fetchedAt = new Date().toISOString();
+    // Deduplicate by URL
+    const existing = await ctx.db
+      .query("newsArticles")
+      .withIndex("by_url", (q) => q.eq("url", article.url))
+      .first();
 
-        await ctx.runMutation(api.news.saveNewsSnapshot, {
-          region,
-          language,
-          fetchedAt,
-          articles,
-        });
-
-        results.push({
-          region,
-          language,
-          fetchedAt,
-          articleCount: articles.length,
-        });
-      }
+    if (existing) {
+      return { inserted: false, skipped: true };
     }
 
+    await ctx.db.insert("newsArticles", {
+      title: article.title,
+      description: article.description,
+      source: article.source,
+      url: article.url,
+      image: article.urlToImage ?? null,
+      region,
+      language,
+      publishedAt: article.publishedAt,
+      fetchedAt,
+    });
+
+    return { inserted: true, skipped: false };
+  },
+});
+
+/**
+ * Query: Get global news ingestion metadata (currently just lastFetchedAt).
+ */
+export const getNewsMeta = query({
+  args: {},
+  handler: async (ctx) => {
+    const meta = await ctx.db
+      .query("newsMeta")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+
     return {
-      refreshed: results,
+      lastFetchedAt: meta?.lastFetchedAt ?? null,
     };
   },
 });
 
 /**
- * Query: Get the latest snapshot for a region & language.
- * The dashboard should use this instead of calling external APIs directly.
+ * Mutation: Update or create the global news meta record with a new lastFetchedAt timestamp.
+ */
+export const setNewsMeta = mutation({
+  args: {
+    lastFetchedAt: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("newsMeta")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, { lastFetchedAt: args.lastFetchedAt });
+      return existing._id;
+    }
+
+    const id = await ctx.db.insert("newsMeta", {
+      key: "global",
+      lastFetchedAt: args.lastFetchedAt,
+    });
+
+    return id;
+  },
+});
+
+/**
+ * Action: Refresh news for all regions and both languages.
+ *
+ * Behaviour:
+ * - Fetches fresh articles from NewsAPI / GNews
+ * - Compares by URL against existing records
+ * - Inserts only NEW articles into newsArticles
+ * - NEVER updates existing article records or their publishedAt timestamps
+ * - Updates newsMeta.lastFetchedAt ONLY if the whole refresh succeeds
+ *
+ * This is what the Convex daily cron (and any manual trigger) should call.
+ */
+export const refreshNewsForAllRegions = action({
+  args: {},
+  handler: async (ctx): Promise<{
+    inserted: number;
+    skipped: number;
+    lastFetchedAt: string;
+    previousLastFetchedAt: string | null;
+    breakdown: {
+      insertedByRegion: Record<string, number>;
+      skippedByRegion: Record<string, number>;
+    };
+  }> => {
+    const regions: Region[] = ["ksa", "uae", "us", "global"];
+    const languages: Language[] = ["en", "ar"];
+
+    // Read last successful fetch timestamp (used mainly for logging / potential future filters)
+    const meta: { lastFetchedAt: string | null } = await ctx.runQuery(api.news.getNewsMeta, {});
+    const previousLastFetchedAt: string | null = meta.lastFetchedAt;
+
+    const insertedByRegion: Record<string, number> = {};
+    const skippedByRegion: Record<string, number> = {};
+
+    const nowIso = new Date().toISOString();
+
+    for (const region of regions) {
+      for (const language of languages) {
+        const articles = await fetchAndNormalizeNews(region, language);
+
+        let inserted = 0;
+        let skipped = 0;
+
+        for (const article of articles) {
+          const result = await ctx.runMutation(api.news.insertNewsArticleIfNew, {
+            region,
+            language,
+            fetchedAt: nowIso,
+            article,
+          });
+
+          if (result.inserted) {
+            inserted += 1;
+          } else {
+            skipped += 1;
+          }
+        }
+
+        const key = `${region}:${language}`;
+        insertedByRegion[key] = (insertedByRegion[key] || 0) + inserted;
+        skippedByRegion[key] = (skippedByRegion[key] || 0) + skipped;
+      }
+    }
+
+    // Only mark lastFetchedAt AFTER all regions/languages processed successfully
+    await ctx.runMutation(api.news.setNewsMeta, {
+      lastFetchedAt: nowIso,
+    });
+
+    const totalInserted = Object.values(insertedByRegion).reduce((sum, n) => sum + n, 0);
+    const totalSkipped = Object.values(skippedByRegion).reduce((sum, n) => sum + n, 0);
+
+    return {
+      inserted: totalInserted,
+      skipped: totalSkipped,
+      lastFetchedAt: nowIso,
+      previousLastFetchedAt,
+      breakdown: {
+        insertedByRegion,
+        skippedByRegion,
+      },
+    };
+  },
+});
+
+/**
+ * Query: Get the latest news articles for a region & language.
+ * Returns the same shape as the old snapshot-based API so the dashboard
+ * (NewsFeedCard) can keep working unchanged.
  */
 export const getLatestNewsByRegion = query({
   args: {
@@ -311,26 +475,32 @@ export const getLatestNewsByRegion = query({
   handler: async (ctx, args) => {
     const { region, language } = args;
 
-    const snapshot = await ctx.db
-      .query("newsSnapshots")
-      .withIndex("by_region_language", (q) => q.eq("region", region).eq("language", language))
+    // Fetch latest articles for this region/language ordered by publishedAt desc
+    const articles = await ctx.db
+      .query("newsArticles")
+      .withIndex("by_region_language_publishedAt", (q) => q.eq("region", region).eq("language", language))
       .order("desc")
+      .take(50);
+
+    const meta = await ctx.db
+      .query("newsMeta")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
       .first();
 
-    if (!snapshot) {
-      return {
-        region,
-        language,
-        articles: [] as NormalizedArticle[],
-        fetchedAt: null as string | null,
-      };
-    }
+    const shapedArticles: NormalizedArticle[] = articles.map((doc) => ({
+      title: doc.title,
+      source: doc.source,
+      publishedAt: doc.publishedAt,
+      description: doc.description,
+      url: doc.url,
+      urlToImage: doc.image ?? null,
+    }));
 
     return {
-      region: snapshot.region as Region,
-      language: snapshot.language as Language,
-      articles: snapshot.articles as NormalizedArticle[],
-      fetchedAt: snapshot.fetchedAt,
+      region,
+      language,
+      articles: shapedArticles,
+      fetchedAt: meta?.lastFetchedAt ?? null,
     };
   },
 });

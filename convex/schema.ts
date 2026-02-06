@@ -1,4 +1,4 @@
-﻿import { defineSchema, defineTable } from "convex/server";
+import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
@@ -346,4 +346,27 @@ export default defineSchema({
   })
     .index("by_region_language", ["region", "language"])
     .index("by_fetchedAt", ["fetchedAt"]),
+
+  // Individual financial news articles with deduplication by URL
+  newsArticles: defineTable({
+    title: v.string(),
+    description: v.string(),
+    source: v.string(),
+    url: v.string(), // Logically unique per article (enforced in code with index)
+    image: v.optional(v.union(v.string(), v.null())),
+    region: v.union(v.literal("ksa"), v.literal("uae"), v.literal("us"), v.literal("global")),
+    language: v.union(v.literal("en"), v.literal("ar")),
+    // Original publish timestamp from the external API (NEVER mutated)
+    publishedAt: v.string(),
+    // When this record was fetched and stored in our system
+    fetchedAt: v.string(),
+  })
+    .index("by_url", ["url"])
+    .index("by_region_language_publishedAt", ["region", "language", "publishedAt"]),
+
+  // Metadata for news ingestion (e.g. last successful fetch timestamp)
+  newsMeta: defineTable({
+    key: v.string(), // e.g. "global" singleton key
+    lastFetchedAt: v.optional(v.string()),
+  }).index("by_key", ["key"]),
 });
